@@ -1,0 +1,71 @@
+DEFINE LCD_DREG PORTD
+DEFINE LCD_DBIT 0 
+DEFINE LCD_RSREG PORTB 
+DEFINE LCD_RSBIT 0 
+DEFINE LCD_EREG PORTB
+DEFINE LCD_EBIT 1
+DEFINE LCD_BITS 8 
+PAUSE 100
+Define ADC_BITS 8
+DEFINE ADC_CLOCK 1
+DEFINE ADC_SAPMLEUS 50
+TRISA=%000001
+ADCON1=0
+LCDOUT $fe,$40,31,16,16,16,16,16,31  '0
+lcdout $fe,$48,28,4,7,1,7,4,28       '1
+lcdout $fe,$50,28,28,31,31,31,28,28  '2
+lcdout $fe,$58,28,20,23,17,23,20,28  '3
+lcdout $fe,$60,28,4,7,1,7,4,28       '4
+lcdout $fe,$68,31,30,30,30,30,30,31  '5
+lcdout $fe,$70,31,28,28,28,28,28,31  '6
+lcdout $fe,$78,31,24,24,24,24,24,31  '7
+  i var byte :J var word:k var byte:m var byte:n var byte:x var byte
+
+
+
+label2:    		'Ýstediðimiz þey;0-5V arasý deðiþimi çevirip ekranda 0-5V arasý deðiþim olarak görme.
+    ADCIN 0,i  	'PortA.0 için 0 yazdýk, alýnan deðeri çevirip i ye attýk
+
+                 'i=255 iken j=5 olarak gözükmeli veya i=127 iken j=2,5 gözükmeli. j=(5*i)/255 formülü çalýþmalý, yani j=2,5 yerine j=25 olsun
+                 'pbp de virgüllü sayý olmadýðýndan virgülden sonrasýný da olaya dahil etmek için 10 ile çarptýk
+    j=i*136    	 'Aþaðýda detaylý olarak açýkladýk.*10 ve *13,6 ayný anda oldu. çünkü pbpde virgül yok	
+                 'max 5V olduðu için 5 ile çarptýk
+    j=j/255   	 '255 parçaya böldük   		
+
+    n=j dig 2       'n=1
+    k=j dig 1 		'k=3
+    m=j dig 0 		'm=6
+
+    lcdout $fe,1,"Aku:",#n,#k,",",#m,"Volt"
+    if j>134 then x=6
+    if j<=134 and j>132 then x=5
+    if j<=132 and j>130 then x=4
+    if j<=130 and j>128 then x=3
+    if j<=128 and j>126 then x=2
+    if j<=126 and j>124 then x=1
+    if j<=124 then x=0
+
+    select case x
+        case 0
+           lcdout $fe,$C0,0,4," %0"
+           pause 500
+           lcdout $fe,$C0,"   %0"
+        case 1
+          lcdout $fe,$C0,7,4," %10"
+           pause 500
+          lcdout $fe,$C0,0,4," %10"
+        case 2
+          lcdout $fe,$C0,6,4," %20"
+        case 3
+         lcdout $fe,$C0,5,4," %40"
+        case 4
+         lcdout $fe,$C0,255,4," %60"
+        case 5
+         lcdout $fe,$C0,255,3," %80"
+        case 6
+         lcdout $fe,$C0,255,2," %100"
+    end select
+
+    pause 500
+goto label2
+
